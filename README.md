@@ -17,12 +17,12 @@ npm run dev   # sert le site sur http://localhost:8080
 
 ## Scripts
 
-| Commande               | Effet                                  |
-| ----------------------- | --------------------------------------- |
-| `npm run dev`           | Sert le site en local                   |
-| `npm run lint`          | ESLint sur `src/` et `scripts/`         |
-| `npm run format`        | Formate avec Prettier                   |
-| `npm run format:check`  | Vérifie le formatage sans modifier      |
+| Commande               | Effet                              |
+| ---------------------- | ---------------------------------- |
+| `npm run dev`          | Sert le site en local              |
+| `npm run lint`         | ESLint sur `src/` et `scripts/`    |
+| `npm run format`       | Formate avec Prettier              |
+| `npm run format:check` | Vérifie le formatage sans modifier |
 
 ## Structure
 
