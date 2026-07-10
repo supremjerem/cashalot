@@ -369,13 +369,13 @@ button {
 .row--simple {
   grid-template-columns: 1fr 92px 46px 26px;
 }
-.row--ponctuelle {
+.row--one-off {
   grid-template-columns: 1fr 92px 100px 26px;
 }
-.row--trimestrielle {
+.row--quarterly {
   grid-template-columns: 1fr 84px 46px 1fr 26px;
 }
-.row--epargne {
+.row--savings {
   grid-template-columns: 1fr 92px 26px;
 }
 
@@ -495,7 +495,7 @@ select.select-month {
 }
 
 /* Credit rows */
-.credit-row {
+.loan-row {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -503,18 +503,18 @@ select.select-month {
   border-radius: 8px;
   transition: background 0.15s;
 }
-.credit-row:hover {
+.loan-row:hover {
   background: var(--row-hover);
 }
 
-.credit-row-top {
+.loan-row-top {
   display: grid;
   grid-template-columns: 1fr 84px 26px;
   gap: 8px;
   align-items: center;
 }
 
-.credit-progress-line {
+.loan-progress-line {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -541,14 +541,14 @@ select.select-month {
   white-space: nowrap;
 }
 
-.credit-meta {
+.loan-meta {
   display: flex;
   gap: 12px;
   align-items: center;
   flex-wrap: wrap;
 }
 
-.credit-meta label {
+.loan-meta label {
   font: 400 11px 'IBM Plex Sans';
   color: var(--text-faint);
   display: flex;
@@ -556,7 +556,7 @@ select.select-month {
   gap: 5px;
 }
 
-.credit-meta input[type='number'] {
+.loan-meta input[type='number'] {
   width: 44px;
   background: transparent;
   border: 1px solid var(--border-subtle-2);
@@ -566,7 +566,7 @@ select.select-month {
   padding: 3px;
 }
 
-.credit-meta input[type='date'] {
+.loan-meta input[type='date'] {
   background: transparent;
   border: 1px solid var(--border-subtle-2);
   border-radius: 6px;
@@ -639,13 +639,13 @@ select.select-month {
 .compact-row--simple {
   grid-template-columns: 1fr 84px 40px 20px;
 }
-.compact-row--ponctuelle {
+.compact-row--one-off {
   grid-template-columns: 1fr 84px 96px 20px;
 }
-.compact-row--trimestrielle {
+.compact-row--quarterly {
   grid-template-columns: 1fr 84px 40px 1fr 20px;
 }
-.compact-row--epargne {
+.compact-row--savings {
   grid-template-columns: 1fr 84px 20px;
 }
 
@@ -660,7 +660,7 @@ select.select-month {
   color: var(--text-faint);
 }
 
-.compact-credit-row {
+.compact-loan-row {
   padding: 7px 4px;
   border-bottom: 1px solid var(--divider);
   display: flex;
@@ -668,15 +668,15 @@ select.select-month {
   gap: 5px;
 }
 
-.compact-credit-top {
+.compact-loan-top {
   display: grid;
   grid-template-columns: 1fr 84px 20px;
   gap: 8px;
   align-items: center;
 }
 
-.compact-credit-top .input-text,
-.compact-credit-top .input-amount {
+.compact-loan-top .input-text,
+.compact-loan-top .input-amount {
   font-size: 13px;
   padding: 2px 0;
 }

@@ -2,9 +2,9 @@ node_modules/
 .DS_Store
 *.log
 
-# Fichiers de handoff design d'origine : contiennent des données financières
-# réelles (montants, noms de crédits, revenus). Ne jamais commit.
+# Original design handoff files: contain real financial data
+# (amounts, loan names, income). Never commit.
 docs/design/
 
-# Config d'agent locale, non liée au code de l'app.
+# Local agent config, unrelated to the app's code.
 skills/

@@ -2,7 +2,7 @@
   "name": "cashalot",
   "version": "1.0.0",
   "private": true,
-  "description": "Dashboard personnel pour suivre revenus, dépenses et épargne.",
+  "description": "Personal dashboard for tracking income, expenses, and savings.",
   "type": "module",
   "scripts": {
     "dev": "node scripts/dev-server.mjs",

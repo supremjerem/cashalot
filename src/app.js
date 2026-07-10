@@ -20,17 +20,18 @@ function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 }
 
-// Données d'exemple fictives (aucune donnée personnelle ne doit vivre ici :
-// les vraies données de l'utilisateur restent uniquement dans le localStorage
-// de son navigateur et ne sont jamais commitées).
+// Fictional example data (no personal data should live here: the user's real
+// data stays only in their browser's localStorage and is never committed).
+// Label and month values are intentionally left in French, matching the
+// app's fr-FR/EUR locale and the example budget items a French user would enter.
 function seedData() {
   return {
     view: 'cards',
-    revenus: [
+    income: [
       { id: uid(), label: 'Salaire', amount: 2500, day: 28 },
       { id: uid(), label: 'Revenu complémentaire', amount: 300, day: 5 }
     ],
-    courantes: [
+    recurring: [
       { id: uid(), label: 'Assurance habitation', amount: 45, day: 9 },
       { id: uid(), label: 'Courses', amount: 250, day: '' },
       { id: uid(), label: 'Taxe foncière', amount: 200, day: '' },
@@ -42,18 +43,18 @@ function seedData() {
       { id: uid(), label: 'Musique', amount: 10, day: 16 },
       { id: uid(), label: 'Salle de sport', amount: 30, day: 10 }
     ],
-    credits: [
+    loans: [
       { id: uid(), label: 'Prêt immobilier', amount: 700, totalMonths: 240, endDate: '2043-05-01' },
       { id: uid(), label: 'Crédit auto', amount: 300, totalMonths: 48, endDate: '2028-03-01' },
       { id: uid(), label: 'Crédit conso', amount: 150, totalMonths: 36, endDate: '2029-01-01' }
     ],
-    ponctuelles: [
+    oneOff: [
       { id: uid(), label: 'Entretien voiture', amount: 150, month: 'Mars' },
       { id: uid(), label: 'Assurance annuelle', amount: 90, month: 'Janvier' },
       { id: uid(), label: 'Vacances', amount: 500, month: 'Août' },
       { id: uid(), label: 'Cadeaux fêtes', amount: 200, month: 'Décembre' }
     ],
-    trimestrielles: [
+    quarterly: [
       {
         id: uid(),
         label: 'Charges copropriété',
@@ -62,14 +63,30 @@ function seedData() {
         monthsLabel: 'Janvier, Avril, Juillet, Octobre'
       }
     ],
-    epargne: []
+    savings: []
+  };
+}
+
+// Accepts both the current English-keyed schema and the legacy French-keyed
+// schema (revenus/courantes/credits/ponctuelles/trimestrielles/epargne) so
+// data saved by earlier versions of the app keeps working.
+function normalizeState(data = {}) {
+  const arr = (v) => (Array.isArray(v) ? v : []);
+  return {
+    view: data.view === 'compact' ? 'compact' : 'cards',
+    income: arr(data.income ?? data.revenus),
+    recurring: arr(data.recurring ?? data.courantes),
+    loans: arr(data.loans ?? data.credits),
+    oneOff: arr(data.oneOff ?? data.ponctuelles),
+    quarterly: arr(data.quarterly ?? data.trimestrielles),
+    savings: arr(data.savings ?? data.epargne)
   };
 }
 
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) return normalizeState(JSON.parse(raw));
   } catch {
     /* ignore corrupt storage */
   }
@@ -89,53 +106,53 @@ const App = {
   setup() {
     const state = reactive(loadState());
     const mounted = ref(false);
-    const anim = reactive({ totalIn: 0, totalOut: 0, resteApresEco: 0, totalEpargne: 0 });
+    const anim = reactive({ totalIn: 0, totalOut: 0, remainingAfterSavings: 0, totalSavings: 0 });
 
     const totals = computed(() => {
       const sum = (arr) => arr.reduce((s, i) => s + (Number(i.amount) || 0), 0);
-      const totalIn = sum(state.revenus);
-      const totalCourantes = sum(state.courantes);
-      const totalCredits = sum(state.credits);
-      const totalOut = totalCourantes + totalCredits;
-      const totalEpargne = sum(state.epargne);
-      const resteAvantEco = totalIn - totalOut;
-      const resteApresEco = resteAvantEco - totalEpargne;
-      const totalPonctuelles = sum(state.ponctuelles);
-      const totalTrimestrielles = state.trimestrielles.reduce(
+      const totalIn = sum(state.income);
+      const totalRecurring = sum(state.recurring);
+      const totalLoans = sum(state.loans);
+      const totalOut = totalRecurring + totalLoans;
+      const totalSavings = sum(state.savings);
+      const remainingBeforeSavings = totalIn - totalOut;
+      const remainingAfterSavings = remainingBeforeSavings - totalSavings;
+      const totalOneOff = sum(state.oneOff);
+      const totalQuarterly = state.quarterly.reduce(
         (s, i) => s + (Number(i.amount) || 0) * (Number(i.occurrences) || 1),
         0
       );
-      const monthlyPonctuelles = totalPonctuelles / 12;
-      const monthlyTrimestrielles = totalTrimestrielles / 12;
-      const resteLisse = resteApresEco - monthlyPonctuelles - monthlyTrimestrielles;
+      const monthlyOneOff = totalOneOff / 12;
+      const monthlyQuarterly = totalQuarterly / 12;
+      const smoothedRemaining = remainingAfterSavings - monthlyOneOff - monthlyQuarterly;
       return {
         totalIn,
-        totalCourantes,
-        totalCredits,
+        totalRecurring,
+        totalLoans,
         totalOut,
-        totalEpargne,
-        resteAvantEco,
-        resteApresEco,
-        totalPonctuelles,
-        totalTrimestrielles,
-        monthlyPonctuelles,
-        monthlyTrimestrielles,
-        resteLisse
+        totalSavings,
+        remainingBeforeSavings,
+        remainingAfterSavings,
+        totalOneOff,
+        totalQuarterly,
+        monthlyOneOff,
+        monthlyQuarterly,
+        smoothedRemaining
       };
     });
 
-    const resteColor = computed(() => (totals.value.resteApresEco >= 0 ? '#56d364' : '#f85149'));
+    const remainingColor = computed(() => (totals.value.remainingAfterSavings >= 0 ? '#56d364' : '#f85149'));
 
     const segmentsRaw = computed(() => [
-      { key: 'credits', label: 'Crédits', value: totals.value.totalCredits, color: '#a371f7' },
-      { key: 'courantes', label: 'Dépenses', value: totals.value.totalCourantes, color: '#58a6ff' },
+      { key: 'loans', label: 'Loans', value: totals.value.totalLoans, color: '#a371f7' },
+      { key: 'recurring', label: 'Expenses', value: totals.value.totalRecurring, color: '#58a6ff' },
       {
-        key: 'trimestrielles',
-        label: 'Trimestrielles (lissé)',
-        value: totals.value.monthlyTrimestrielles,
+        key: 'quarterly',
+        label: 'Quarterly (smoothed)',
+        value: totals.value.monthlyQuarterly,
         color: '#545d7a'
       },
-      { key: 'ponctuelles', label: 'Ponctuelles (lissé)', value: totals.value.monthlyPonctuelles, color: '#39c5cf' }
+      { key: 'oneOff', label: 'One-off (smoothed)', value: totals.value.monthlyOneOff, color: '#39c5cf' }
     ]);
     const chartTotal = computed(() => segmentsRaw.value.reduce((s, x) => s + x.value, 0) || 1);
     const segments = computed(() =>
@@ -155,8 +172,8 @@ const App = {
     });
 
     const segmentsFixedRaw = computed(() => [
-      { key: 'credits', label: 'Crédits', value: totals.value.totalCredits, color: '#a371f7' },
-      { key: 'courantes', label: 'Dépenses', value: totals.value.totalCourantes, color: '#58a6ff' }
+      { key: 'loans', label: 'Loans', value: totals.value.totalLoans, color: '#a371f7' },
+      { key: 'recurring', label: 'Expenses', value: totals.value.totalRecurring, color: '#58a6ff' }
     ]);
     const chartTotalFixed = computed(() => segmentsFixedRaw.value.reduce((s, x) => s + x.value, 0) || 1);
     const segmentsFixed = computed(() =>
@@ -175,20 +192,20 @@ const App = {
       return `conic-gradient(${stops})`;
     });
 
-    function creditElapsedMonths(item) {
+    function loanElapsedMonths(item) {
       const today = new Date();
       const end = new Date(item.endDate || today);
       const remaining = Math.max(0, monthsBetween(today, end));
       const total = Number(item.totalMonths) || 1;
       return Math.min(total, Math.max(0, total - remaining));
     }
-    function creditProgressPct(item) {
+    function loanProgressPct(item) {
       const total = Number(item.totalMonths) || 1;
-      return Math.min(100, Math.max(0, (creditElapsedMonths(item) / total) * 100));
+      return Math.min(100, Math.max(0, (loanElapsedMonths(item) / total) * 100));
     }
-    function creditProgressLabel(item) {
+    function loanProgressLabel(item) {
       const total = Number(item.totalMonths) || 1;
-      return `${creditElapsedMonths(item)} / ${total} mois`;
+      return `${loanElapsedMonths(item)} / ${total} months`;
     }
 
     let raf = null;
@@ -198,8 +215,8 @@ const App = {
         const targets = {
           totalIn: totals.value.totalIn,
           totalOut: totals.value.totalOut,
-          resteApresEco: totals.value.resteApresEco,
-          totalEpargne: totals.value.totalEpargne
+          remainingAfterSavings: totals.value.remainingAfterSavings,
+          totalSavings: totals.value.totalSavings
         };
         let moving = false;
         for (const k in targets) {
@@ -223,12 +240,12 @@ const App = {
       () =>
         JSON.stringify({
           view: state.view,
-          revenus: state.revenus,
-          courantes: state.courantes,
-          credits: state.credits,
-          ponctuelles: state.ponctuelles,
-          trimestrielles: state.trimestrielles,
-          epargne: state.epargne
+          income: state.income,
+          recurring: state.recurring,
+          loans: state.loans,
+          oneOff: state.oneOff,
+          quarterly: state.quarterly,
+          savings: state.savings
         }),
       (val) => {
         clearTimeout(saveTimer);
@@ -250,40 +267,41 @@ const App = {
       if (idx !== -1) state[category].splice(idx, 1);
     }
 
-    function addRevenu() {
-      addRow('revenus', { label: 'Nouveau revenu', amount: 0, day: '' });
+    function addIncome() {
+      addRow('income', { label: 'New income', amount: 0, day: '' });
     }
-    function addCourante() {
-      addRow('courantes', { label: 'Nouvelle dépense', amount: 0, day: '' });
+    function addRecurring() {
+      addRow('recurring', { label: 'New expense', amount: 0, day: '' });
     }
-    function addCredit() {
+    function addLoan() {
       const endDate = new Date();
       endDate.setFullYear(endDate.getFullYear() + 5);
-      addRow('credits', {
-        label: 'Nouveau crédit',
+      addRow('loans', {
+        label: 'New loan',
         amount: 0,
         totalMonths: 60,
         endDate: endDate.toISOString().slice(0, 10)
       });
     }
-    function addPonctuelle() {
-      addRow('ponctuelles', { label: 'Nouvelle dépense', amount: 0, month: 'Janvier' });
+    function addOneOff() {
+      addRow('oneOff', { label: 'New one-off expense', amount: 0, month: 'Janvier' });
     }
-    function addTrimestrielle() {
-      addRow('trimestrielles', { label: 'Nouvelle charge', amount: 0, occurrences: 4, monthsLabel: '' });
+    function addQuarterly() {
+      addRow('quarterly', { label: 'New quarterly charge', amount: 0, occurrences: 4, monthsLabel: '' });
     }
-    function addEpargne() {
-      addRow('epargne', { label: 'Épargne', amount: 0 });
+    function addSavings() {
+      addRow('savings', { label: 'Savings', amount: 0 });
     }
 
     function applyState(data) {
-      state.view = data.view === 'compact' ? 'compact' : 'cards';
-      state.revenus = Array.isArray(data.revenus) ? data.revenus : [];
-      state.courantes = Array.isArray(data.courantes) ? data.courantes : [];
-      state.credits = Array.isArray(data.credits) ? data.credits : [];
-      state.ponctuelles = Array.isArray(data.ponctuelles) ? data.ponctuelles : [];
-      state.trimestrielles = Array.isArray(data.trimestrielles) ? data.trimestrielles : [];
-      state.epargne = Array.isArray(data.epargne) ? data.epargne : [];
+      const normalized = normalizeState(data);
+      state.view = normalized.view;
+      state.income = normalized.income;
+      state.recurring = normalized.recurring;
+      state.loans = normalized.loans;
+      state.oneOff = normalized.oneOff;
+      state.quarterly = normalized.quarterly;
+      state.savings = normalized.savings;
       mounted.value = false;
       nextTick(() =>
         setTimeout(() => {
@@ -314,12 +332,12 @@ const App = {
     function exportData() {
       const payload = {
         view: state.view,
-        revenus: state.revenus,
-        courantes: state.courantes,
-        credits: state.credits,
-        ponctuelles: state.ponctuelles,
-        trimestrielles: state.trimestrielles,
-        epargne: state.epargne
+        income: state.income,
+        recurring: state.recurring,
+        loans: state.loans,
+        oneOff: state.oneOff,
+        quarterly: state.quarterly,
+        savings: state.savings
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -328,7 +346,7 @@ const App = {
       a.download = `cashalot-export-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      flashStatus('Export téléchargé.');
+      flashStatus('Export downloaded.');
     }
 
     const fileInputRef = ref(null);
@@ -342,9 +360,9 @@ const App = {
       try {
         const data = JSON.parse(await file.text());
         applyState(data);
-        flashStatus('Import réussi.');
+        flashStatus('Import successful.');
       } catch {
-        flashStatus('Fichier invalide, import annulé.');
+        flashStatus('Invalid file, import cancelled.');
       }
     }
 
@@ -367,7 +385,7 @@ const App = {
       state,
       totals,
       anim,
-      resteColor,
+      remainingColor,
       chartTotal,
       segments,
       donutGradient,
@@ -376,14 +394,14 @@ const App = {
       MONTHS,
       fmt,
       enterStyle,
-      creditProgressPct,
-      creditProgressLabel,
-      addRevenu,
-      addCourante,
-      addCredit,
-      addPonctuelle,
-      addTrimestrielle,
-      addEpargne,
+      loanProgressPct,
+      loanProgressLabel,
+      addIncome,
+      addRecurring,
+      addLoan,
+      addOneOff,
+      addQuarterly,
+      addSavings,
       deleteRow,
       resetSeed,
       statusMessage,

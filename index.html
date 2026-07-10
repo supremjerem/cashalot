@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fr">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -12,25 +12,25 @@
     <link rel="stylesheet" href="./src/style.css" />
   </head>
   <body>
-    <div id="app" class="app" data-screen-label="Dashboard CashaLot">
+    <div id="app" class="app" data-screen-label="CashaLot Dashboard">
       <div class="header" :style="enterStyle(0)">
         <div>
           <div class="title">CashaLot</div>
-          <div class="subtitle">Revenus, dépenses & épargne · sauvegardé sur cet appareil</div>
+          <div class="subtitle">Income, expenses & savings · saved on this device</div>
         </div>
         <div class="header-actions">
           <span class="status-message" v-if="statusMessage">{{ statusMessage }}</span>
-          <button class="btn-reset" @click="exportData">Exporter</button>
-          <button class="btn-reset" @click="triggerImport">Importer</button>
+          <button class="btn-reset" @click="exportData">Export</button>
+          <button class="btn-reset" @click="triggerImport">Import</button>
           <input
             ref="fileInputRef"
             type="file"
             accept="application/json"
             @change="importData"
             style="display: none"
-            aria-label="Importer un fichier de données JSON"
+            aria-label="Import a JSON data file"
           />
-          <button class="btn-reset" @click="resetSeed">Réinitialiser l'exemple</button>
+          <button class="btn-reset" @click="resetSeed">Reset example</button>
           <div class="segmented">
             <div
               class="segmented-pill"
@@ -41,7 +41,7 @@
               :style="{ color: state.view === 'cards' ? '#0d1117' : '#8b949e' }"
               @click="state.view = 'cards'"
             >
-              Cartes
+              Cards
             </button>
             <button
               class="segmented-btn"
@@ -54,14 +54,14 @@
         </div>
       </div>
 
-      <!-- ===================== CARTES ===================== -->
+      <!-- ===================== CARDS ===================== -->
       <template v-if="state.view === 'cards'">
         <div :style="enterStyle(60)">
           <div class="hero-card">
-            <div class="hero-label">Il vous reste chaque mois</div>
-            <div class="hero-number" :style="{ color: resteColor }">{{ fmt(anim.resteApresEco) }}</div>
+            <div class="hero-label">Left over each month</div>
+            <div class="hero-number" :style="{ color: remainingColor }">{{ fmt(anim.remainingAfterSavings) }}</div>
             <div class="hero-sub">
-              ≈ {{ fmt(totals.resteLisse) }} en lissant les charges annuelles et trimestrielles sur 12 mois
+              ≈ {{ fmt(totals.smoothedRemaining) }} smoothing annual and quarterly charges over 12 months
             </div>
           </div>
         </div>
@@ -70,21 +70,21 @@
           <div class="stats-row">
             <div class="stat-card">
               <div class="stat-head">
-                <span class="dot" style="background: #3fb950"></span><span class="stat-label">Revenus</span>
+                <span class="dot" style="background: #3fb950"></span><span class="stat-label">Income</span>
               </div>
               <div class="stat-number">{{ fmt(anim.totalIn) }}</div>
             </div>
             <div class="stat-card">
               <div class="stat-head">
-                <span class="dot" style="background: #58a6ff"></span><span class="stat-label">Dépenses fixes</span>
+                <span class="dot" style="background: #58a6ff"></span><span class="stat-label">Fixed expenses</span>
               </div>
               <div class="stat-number">{{ fmt(anim.totalOut) }}</div>
             </div>
             <div class="stat-card">
               <div class="stat-head">
-                <span class="dot" style="background: #8b949e"></span><span class="stat-label">Épargne</span>
+                <span class="dot" style="background: #8b949e"></span><span class="stat-label">Savings</span>
               </div>
-              <div class="stat-number">{{ fmt(anim.totalEpargne) }}</div>
+              <div class="stat-number">{{ fmt(anim.totalSavings) }}</div>
             </div>
           </div>
         </div>
@@ -93,15 +93,15 @@
           <div class="donuts-row">
             <div class="donut-card">
               <div class="donut-title">
-                Lissé
-                <span class="donut-title-sub">· charges annuelles &amp; trimestrielles réparties sur 12 mois</span>
+                Smoothed
+                <span class="donut-title-sub">· annual &amp; quarterly charges spread over 12 months</span>
               </div>
               <div class="donut-body">
                 <div class="donut-ring-wrap">
                   <div class="donut-ring" :style="{ background: donutGradient }"></div>
                   <div class="donut-center">
                     <div class="donut-center-num">{{ fmt(chartTotal) }}</div>
-                    <div class="donut-center-label">par mois</div>
+                    <div class="donut-center-label">per month</div>
                   </div>
                 </div>
                 <div class="donut-legend">
@@ -115,15 +115,13 @@
             </div>
 
             <div class="donut-card">
-              <div class="donut-title">
-                Non lissé <span class="donut-title-sub">· dépenses &amp; crédits uniquement</span>
-              </div>
+              <div class="donut-title">Unsmoothed <span class="donut-title-sub">· expenses &amp; loans only</span></div>
               <div class="donut-body">
                 <div class="donut-ring-wrap">
                   <div class="donut-ring" :style="{ background: donutGradientFixed }"></div>
                   <div class="donut-center">
                     <div class="donut-center-num">{{ fmt(totals.totalOut) }}</div>
-                    <div class="donut-center-label">par mois</div>
+                    <div class="donut-center-label">per month</div>
                   </div>
                 </div>
                 <div class="donut-legend">
@@ -142,218 +140,210 @@
           <div :style="enterStyle(210)">
             <div class="category-card">
               <div class="category-head">
-                <div class="category-name">Revenus</div>
+                <div class="category-name">Income</div>
                 <div class="category-total" style="color: #3fb950">{{ fmt(anim.totalIn) }}</div>
               </div>
               <div class="rows">
-                <div class="row row--simple" v-for="item in state.revenus" :key="item.id">
-                  <input class="input-text" v-model.lazy="item.label" aria-label="Libellé du revenu" />
+                <div class="row row--simple" v-for="item in state.income" :key="item.id">
+                  <input class="input-text" v-model.lazy="item.label" aria-label="Income label" />
                   <input
                     class="input-amount"
                     type="number"
                     v-model.lazy.number="item.amount"
-                    aria-label="Montant du revenu en euros"
+                    aria-label="Income amount in euros"
                   />
                   <input
                     class="input-day"
                     type="number"
                     v-model.lazy="item.day"
-                    placeholder="jour"
-                    aria-label="Jour de réception"
+                    placeholder="day"
+                    aria-label="Payment day"
                   />
-                  <button class="btn-delete" @click="deleteRow('revenus', item.id)" aria-label="Supprimer ce revenu">
+                  <button class="btn-delete" @click="deleteRow('income', item.id)" aria-label="Delete this income">
                     ×
                   </button>
                 </div>
               </div>
-              <button class="btn-add btn-add--green" @click="addRevenu">+ Ajouter un revenu</button>
+              <button class="btn-add btn-add--green" @click="addIncome">+ Add income</button>
             </div>
           </div>
 
           <div :style="enterStyle(240)">
             <div class="category-card">
               <div class="category-head">
-                <div class="category-name">Dépenses</div>
-                <div class="category-total" style="color: #58a6ff">{{ fmt(totals.totalCourantes) }}</div>
+                <div class="category-name">Expenses</div>
+                <div class="category-total" style="color: #58a6ff">{{ fmt(totals.totalRecurring) }}</div>
               </div>
               <div class="rows">
-                <div class="row row--simple" v-for="item in state.courantes" :key="item.id">
-                  <input class="input-text" v-model.lazy="item.label" aria-label="Libellé de la dépense" />
+                <div class="row row--simple" v-for="item in state.recurring" :key="item.id">
+                  <input class="input-text" v-model.lazy="item.label" aria-label="Expense label" />
                   <input
                     class="input-amount"
                     type="number"
                     v-model.lazy.number="item.amount"
-                    aria-label="Montant de la dépense en euros"
+                    aria-label="Expense amount in euros"
                   />
                   <input
                     class="input-day"
                     type="number"
                     v-model.lazy="item.day"
-                    placeholder="jour"
-                    aria-label="Jour de prélèvement"
+                    placeholder="day"
+                    aria-label="Debit day"
                   />
-                  <button
-                    class="btn-delete"
-                    @click="deleteRow('courantes', item.id)"
-                    aria-label="Supprimer cette dépense"
-                  >
+                  <button class="btn-delete" @click="deleteRow('recurring', item.id)" aria-label="Delete this expense">
                     ×
                   </button>
                 </div>
               </div>
-              <button class="btn-add btn-add--blue" @click="addCourante">+ Ajouter une dépense</button>
+              <button class="btn-add btn-add--blue" @click="addRecurring">+ Add expense</button>
             </div>
           </div>
 
           <div :style="enterStyle(270)">
             <div class="category-card">
               <div class="category-head">
-                <div class="category-name">Crédits</div>
-                <div class="category-total" style="color: #a371f7">{{ fmt(totals.totalCredits) }}</div>
+                <div class="category-name">Loans</div>
+                <div class="category-total" style="color: #a371f7">{{ fmt(totals.totalLoans) }}</div>
               </div>
               <div class="rows" style="gap: 10px">
-                <div class="credit-row" v-for="item in state.credits" :key="item.id">
-                  <div class="credit-row-top">
-                    <input class="input-text" v-model.lazy="item.label" aria-label="Libellé du crédit" />
+                <div class="loan-row" v-for="item in state.loans" :key="item.id">
+                  <div class="loan-row-top">
+                    <input class="input-text" v-model.lazy="item.label" aria-label="Loan label" />
                     <input
                       class="input-amount"
                       type="number"
                       v-model.lazy.number="item.amount"
-                      aria-label="Mensualité du crédit en euros"
+                      aria-label="Loan monthly payment in euros"
                     />
-                    <button class="btn-delete" @click="deleteRow('credits', item.id)" aria-label="Supprimer ce crédit">
+                    <button class="btn-delete" @click="deleteRow('loans', item.id)" aria-label="Delete this loan">
                       ×
                     </button>
                   </div>
-                  <div class="credit-progress-line">
+                  <div class="loan-progress-line">
                     <div class="progress-track">
-                      <div class="progress-fill" :style="{ width: creditProgressPct(item) + '%' }"></div>
+                      <div class="progress-fill" :style="{ width: loanProgressPct(item) + '%' }"></div>
                     </div>
-                    <div class="progress-label">{{ creditProgressLabel(item) }}</div>
+                    <div class="progress-label">{{ loanProgressLabel(item) }}</div>
                   </div>
-                  <div class="credit-meta">
+                  <div class="loan-meta">
                     <label
-                      >Durée
+                      >Duration
                       <input
                         type="number"
                         v-model.lazy.number="item.totalMonths"
-                        aria-label="Durée du crédit en mois"
+                        aria-label="Loan duration in months"
                       />
-                      mois
+                      months
                     </label>
                     <label
-                      >Fin
-                      <input type="date" v-model.lazy="item.endDate" aria-label="Date de fin du crédit" />
+                      >End
+                      <input type="date" v-model.lazy="item.endDate" aria-label="Loan end date" />
                     </label>
                   </div>
                 </div>
               </div>
-              <button class="btn-add btn-add--purple" @click="addCredit">+ Ajouter un crédit</button>
+              <button class="btn-add btn-add--purple" @click="addLoan">+ Add loan</button>
             </div>
           </div>
 
           <div :style="enterStyle(300)">
             <div class="category-card">
               <div class="category-head">
-                <div class="category-name">Dépenses ponctuelles</div>
+                <div class="category-name">One-off expenses</div>
                 <div class="category-total" style="color: #39c5cf">
-                  {{ fmt(totals.totalPonctuelles) }}<span class="category-total-suffix">/an</span>
+                  {{ fmt(totals.totalOneOff) }}<span class="category-total-suffix">/yr</span>
                 </div>
               </div>
               <div class="rows">
-                <div class="row row--ponctuelle" v-for="item in state.ponctuelles" :key="item.id">
-                  <input class="input-text" v-model.lazy="item.label" aria-label="Libellé de la dépense ponctuelle" />
+                <div class="row row--one-off" v-for="item in state.oneOff" :key="item.id">
+                  <input class="input-text" v-model.lazy="item.label" aria-label="One-off expense label" />
                   <input
                     class="input-amount"
                     type="number"
                     v-model.lazy.number="item.amount"
-                    aria-label="Montant de la dépense ponctuelle en euros"
+                    aria-label="One-off expense amount in euros"
                   />
-                  <select class="select-month" v-model.lazy="item.month" aria-label="Mois de la dépense ponctuelle">
+                  <select class="select-month" v-model.lazy="item.month" aria-label="One-off expense month">
                     <option v-for="m in MONTHS" :key="m" :value="m">{{ m }}</option>
                   </select>
                   <button
                     class="btn-delete"
-                    @click="deleteRow('ponctuelles', item.id)"
-                    aria-label="Supprimer cette dépense ponctuelle"
+                    @click="deleteRow('oneOff', item.id)"
+                    aria-label="Delete this one-off expense"
                   >
                     ×
                   </button>
                 </div>
               </div>
-              <button class="btn-add btn-add--cyan" @click="addPonctuelle">+ Ajouter</button>
+              <button class="btn-add btn-add--cyan" @click="addOneOff">+ Add</button>
             </div>
           </div>
 
           <div :style="enterStyle(330)">
             <div class="category-card">
               <div class="category-head">
-                <div class="category-name">Charges trimestrielles</div>
+                <div class="category-name">Quarterly charges</div>
                 <div class="category-total" style="color: #545d7a">
-                  {{ fmt(totals.totalTrimestrielles) }}<span class="category-total-suffix">/an</span>
+                  {{ fmt(totals.totalQuarterly) }}<span class="category-total-suffix">/yr</span>
                 </div>
               </div>
               <div class="rows">
-                <div class="row row--trimestrielle" v-for="item in state.trimestrielles" :key="item.id">
-                  <input class="input-text" v-model.lazy="item.label" aria-label="Libellé de la charge trimestrielle" />
+                <div class="row row--quarterly" v-for="item in state.quarterly" :key="item.id">
+                  <input class="input-text" v-model.lazy="item.label" aria-label="Quarterly charge label" />
                   <input
                     class="input-amount"
                     type="number"
                     v-model.lazy.number="item.amount"
-                    aria-label="Montant de la charge en euros"
+                    aria-label="Charge amount in euros"
                   />
                   <input
                     class="input-boxed"
                     type="number"
                     v-model.lazy.number="item.occurrences"
-                    title="fois par an"
-                    aria-label="Nombre d'occurrences par an"
+                    title="times per year"
+                    aria-label="Number of occurrences per year"
                   />
                   <input
                     class="input-note"
                     v-model.lazy="item.monthsLabel"
-                    placeholder="mois"
-                    aria-label="Mois concernés"
+                    placeholder="months"
+                    aria-label="Months concerned"
                   />
-                  <button
-                    class="btn-delete"
-                    @click="deleteRow('trimestrielles', item.id)"
-                    aria-label="Supprimer cette charge"
-                  >
+                  <button class="btn-delete" @click="deleteRow('quarterly', item.id)" aria-label="Delete this charge">
                     ×
                   </button>
                 </div>
               </div>
-              <button class="btn-add btn-add--slate" @click="addTrimestrielle">+ Ajouter</button>
+              <button class="btn-add btn-add--slate" @click="addQuarterly">+ Add</button>
             </div>
           </div>
 
           <div :style="enterStyle(360)">
             <div class="category-card">
               <div class="category-head">
-                <div class="category-name">Épargne</div>
-                <div class="category-total" style="color: #8b949e">{{ fmt(anim.totalEpargne) }}</div>
+                <div class="category-name">Savings</div>
+                <div class="category-total" style="color: #8b949e">{{ fmt(anim.totalSavings) }}</div>
               </div>
-              <div class="empty-state" v-if="state.epargne.length === 0">Rien de côté pour l'instant.</div>
+              <div class="empty-state" v-if="state.savings.length === 0">Nothing set aside yet.</div>
               <div class="rows">
-                <div class="row row--epargne" v-for="item in state.epargne" :key="item.id">
-                  <input class="input-text" v-model.lazy="item.label" aria-label="Libellé de l'épargne" />
+                <div class="row row--savings" v-for="item in state.savings" :key="item.id">
+                  <input class="input-text" v-model.lazy="item.label" aria-label="Savings label" />
                   <input
                     class="input-amount"
                     type="number"
                     v-model.lazy.number="item.amount"
-                    aria-label="Montant de l'épargne en euros"
+                    aria-label="Savings amount in euros"
                   />
                   <button
                     class="btn-delete"
-                    @click="deleteRow('epargne', item.id)"
-                    aria-label="Supprimer cette ligne d'épargne"
+                    @click="deleteRow('savings', item.id)"
+                    aria-label="Delete this savings entry"
                   >
                     ×
                   </button>
                 </div>
               </div>
-              <button class="btn-add btn-add--muted" @click="addEpargne">+ Ajouter</button>
+              <button class="btn-add btn-add--muted" @click="addSavings">+ Add</button>
             </div>
           </div>
         </div>
@@ -364,18 +354,20 @@
         <div class="compact">
           <div class="compact-strip">
             <div>
-              <span class="compact-strip-label">Revenus </span
+              <span class="compact-strip-label">Income </span
               ><span class="compact-strip-value" style="color: #3fb950">{{ fmt(totals.totalIn) }}</span>
             </div>
             <div>
-              <span class="compact-strip-label">Dépenses </span
+              <span class="compact-strip-label">Expenses </span
               ><span class="compact-strip-value" style="color: #58a6ff">{{ fmt(totals.totalOut) }}</span>
             </div>
             <div>
-              <span class="compact-strip-label">Reste </span
-              ><span class="compact-strip-value" :style="{ color: resteColor }">{{ fmt(totals.resteApresEco) }}</span>
+              <span class="compact-strip-label">Left </span
+              ><span class="compact-strip-value" :style="{ color: remainingColor }"
+                >{{ fmt(totals.remainingAfterSavings) }}</span
+              >
             </div>
-            <div class="compact-strip-note">lissé ≈ {{ fmt(totals.resteLisse) }}</div>
+            <div class="compact-strip-note">smoothed ≈ {{ fmt(totals.smoothedRemaining) }}</div>
           </div>
 
           <div class="compact-bar">
@@ -385,164 +377,156 @@
           <div class="compact-sections">
             <div>
               <div class="compact-section-head">
-                Revenus<span style="color: #3fb950">{{ fmt(totals.totalIn) }}</span>
+                Income<span style="color: #3fb950">{{ fmt(totals.totalIn) }}</span>
               </div>
-              <div class="compact-row compact-row--simple" v-for="item in state.revenus" :key="item.id">
-                <input class="input-text" v-model.lazy="item.label" aria-label="Libellé du revenu" />
+              <div class="compact-row compact-row--simple" v-for="item in state.income" :key="item.id">
+                <input class="input-text" v-model.lazy="item.label" aria-label="Income label" />
                 <input
                   class="input-amount"
                   type="number"
                   v-model.lazy.number="item.amount"
-                  aria-label="Montant du revenu en euros"
+                  aria-label="Income amount in euros"
                 />
                 <input
                   class="input-day"
                   type="number"
                   v-model.lazy="item.day"
-                  placeholder="j."
-                  aria-label="Jour de réception"
+                  placeholder="d."
+                  aria-label="Payment day"
                 />
-                <button class="btn-delete-sm" @click="deleteRow('revenus', item.id)" aria-label="Supprimer ce revenu">
+                <button class="btn-delete-sm" @click="deleteRow('income', item.id)" aria-label="Delete this income">
                   ×
                 </button>
               </div>
-              <button class="btn-add-sm" @click="addRevenu">+ ajouter</button>
+              <button class="btn-add-sm" @click="addIncome">+ add</button>
             </div>
 
             <div>
               <div class="compact-section-head">
-                Dépenses<span style="color: #58a6ff">{{ fmt(totals.totalCourantes) }}</span>
+                Expenses<span style="color: #58a6ff">{{ fmt(totals.totalRecurring) }}</span>
               </div>
-              <div class="compact-row compact-row--simple" v-for="item in state.courantes" :key="item.id">
-                <input class="input-text" v-model.lazy="item.label" aria-label="Libellé de la dépense" />
+              <div class="compact-row compact-row--simple" v-for="item in state.recurring" :key="item.id">
+                <input class="input-text" v-model.lazy="item.label" aria-label="Expense label" />
                 <input
                   class="input-amount"
                   type="number"
                   v-model.lazy.number="item.amount"
-                  aria-label="Montant de la dépense en euros"
+                  aria-label="Expense amount in euros"
                 />
                 <input
                   class="input-day"
                   type="number"
                   v-model.lazy="item.day"
-                  placeholder="j."
-                  aria-label="Jour de prélèvement"
+                  placeholder="d."
+                  aria-label="Debit day"
                 />
-                <button
-                  class="btn-delete-sm"
-                  @click="deleteRow('courantes', item.id)"
-                  aria-label="Supprimer cette dépense"
-                >
+                <button class="btn-delete-sm" @click="deleteRow('recurring', item.id)" aria-label="Delete this expense">
                   ×
                 </button>
               </div>
-              <button class="btn-add-sm" @click="addCourante">+ ajouter</button>
+              <button class="btn-add-sm" @click="addRecurring">+ add</button>
             </div>
 
             <div>
               <div class="compact-section-head">
-                Crédits<span style="color: #a371f7">{{ fmt(totals.totalCredits) }}</span>
+                Loans<span style="color: #a371f7">{{ fmt(totals.totalLoans) }}</span>
               </div>
-              <div class="compact-credit-row" v-for="item in state.credits" :key="item.id">
-                <div class="compact-credit-top">
-                  <input class="input-text" v-model.lazy="item.label" aria-label="Libellé du crédit" />
+              <div class="compact-loan-row" v-for="item in state.loans" :key="item.id">
+                <div class="compact-loan-top">
+                  <input class="input-text" v-model.lazy="item.label" aria-label="Loan label" />
                   <input
                     class="input-amount"
                     type="number"
                     v-model.lazy.number="item.amount"
-                    aria-label="Mensualité du crédit en euros"
+                    aria-label="Loan monthly payment in euros"
                   />
-                  <button class="btn-delete-sm" @click="deleteRow('credits', item.id)" aria-label="Supprimer ce crédit">
+                  <button class="btn-delete-sm" @click="deleteRow('loans', item.id)" aria-label="Delete this loan">
                     ×
                   </button>
                 </div>
                 <div class="compact-progress-line">
                   <div class="progress-track">
-                    <div class="progress-fill" :style="{ width: creditProgressPct(item) + '%' }"></div>
+                    <div class="progress-fill" :style="{ width: loanProgressPct(item) + '%' }"></div>
                   </div>
-                  <div class="progress-label">{{ creditProgressLabel(item) }}</div>
+                  <div class="progress-label">{{ loanProgressLabel(item) }}</div>
                 </div>
               </div>
-              <button class="btn-add-sm" @click="addCredit">+ ajouter</button>
+              <button class="btn-add-sm" @click="addLoan">+ add</button>
             </div>
 
             <div>
               <div class="compact-section-head">
-                Ponctuelles<span style="color: #39c5cf">{{ fmt(totals.totalPonctuelles) }}/an</span>
+                One-off<span style="color: #39c5cf">{{ fmt(totals.totalOneOff) }}/yr</span>
               </div>
-              <div class="compact-row compact-row--ponctuelle" v-for="item in state.ponctuelles" :key="item.id">
-                <input class="input-text" v-model.lazy="item.label" aria-label="Libellé de la dépense ponctuelle" />
+              <div class="compact-row compact-row--one-off" v-for="item in state.oneOff" :key="item.id">
+                <input class="input-text" v-model.lazy="item.label" aria-label="One-off expense label" />
                 <input
                   class="input-amount"
                   type="number"
                   v-model.lazy.number="item.amount"
-                  aria-label="Montant de la dépense ponctuelle en euros"
+                  aria-label="One-off expense amount in euros"
                 />
-                <select class="select-month" v-model.lazy="item.month" aria-label="Mois de la dépense ponctuelle">
+                <select class="select-month" v-model.lazy="item.month" aria-label="One-off expense month">
                   <option v-for="m in MONTHS" :key="m" :value="m">{{ m }}</option>
                 </select>
                 <button
                   class="btn-delete-sm"
-                  @click="deleteRow('ponctuelles', item.id)"
-                  aria-label="Supprimer cette dépense ponctuelle"
+                  @click="deleteRow('oneOff', item.id)"
+                  aria-label="Delete this one-off expense"
                 >
                   ×
                 </button>
               </div>
-              <button class="btn-add-sm" @click="addPonctuelle">+ ajouter</button>
+              <button class="btn-add-sm" @click="addOneOff">+ add</button>
             </div>
 
             <div>
               <div class="compact-section-head">
-                Trimestrielles<span style="color: #545d7a">{{ fmt(totals.totalTrimestrielles) }}/an</span>
+                Quarterly<span style="color: #545d7a">{{ fmt(totals.totalQuarterly) }}/yr</span>
               </div>
-              <div class="compact-row compact-row--trimestrielle" v-for="item in state.trimestrielles" :key="item.id">
-                <input class="input-text" v-model.lazy="item.label" aria-label="Libellé de la charge trimestrielle" />
+              <div class="compact-row compact-row--quarterly" v-for="item in state.quarterly" :key="item.id">
+                <input class="input-text" v-model.lazy="item.label" aria-label="Quarterly charge label" />
                 <input
                   class="input-amount"
                   type="number"
                   v-model.lazy.number="item.amount"
-                  aria-label="Montant de la charge en euros"
+                  aria-label="Charge amount in euros"
                 />
                 <input
                   class="input-boxed"
                   type="number"
                   v-model.lazy.number="item.occurrences"
-                  aria-label="Nombre d'occurrences par an"
+                  aria-label="Number of occurrences per year"
                 />
-                <input class="input-note" v-model.lazy="item.monthsLabel" aria-label="Mois concernés" />
-                <button
-                  class="btn-delete-sm"
-                  @click="deleteRow('trimestrielles', item.id)"
-                  aria-label="Supprimer cette charge"
-                >
+                <input class="input-note" v-model.lazy="item.monthsLabel" aria-label="Months concerned" />
+                <button class="btn-delete-sm" @click="deleteRow('quarterly', item.id)" aria-label="Delete this charge">
                   ×
                 </button>
               </div>
-              <button class="btn-add-sm" @click="addTrimestrielle">+ ajouter</button>
+              <button class="btn-add-sm" @click="addQuarterly">+ add</button>
             </div>
 
             <div>
               <div class="compact-section-head">
-                Épargne<span style="color: #8b949e">{{ fmt(totals.totalEpargne) }}</span>
+                Savings<span style="color: #8b949e">{{ fmt(totals.totalSavings) }}</span>
               </div>
-              <div class="compact-row compact-row--epargne" v-for="item in state.epargne" :key="item.id">
-                <input class="input-text" v-model.lazy="item.label" aria-label="Libellé de l'épargne" />
+              <div class="compact-row compact-row--savings" v-for="item in state.savings" :key="item.id">
+                <input class="input-text" v-model.lazy="item.label" aria-label="Savings label" />
                 <input
                   class="input-amount"
                   type="number"
                   v-model.lazy.number="item.amount"
-                  aria-label="Montant de l'épargne en euros"
+                  aria-label="Savings amount in euros"
                 />
                 <button
                   class="btn-delete-sm"
-                  @click="deleteRow('epargne', item.id)"
-                  aria-label="Supprimer cette ligne d'épargne"
+                  @click="deleteRow('savings', item.id)"
+                  aria-label="Delete this savings entry"
                 >
                   ×
                 </button>
               </div>
-              <button class="btn-add-sm" @click="addEpargne">+ ajouter</button>
+              <button class="btn-add-sm" @click="addSavings">+ add</button>
             </div>
           </div>
         </div>

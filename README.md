@@ -1,45 +1,47 @@
 # Cashalot
 
-Dashboard personnel pour suivre revenus, dépenses et épargne — pensé pour remplacer un tableur. Édition en place (ajout/suppression/édition de lignes), calculs en direct (reste à vivre, lissage des charges annuelles/trimestrielles), et deux vues (Cartes / Compact) sur les mêmes données.
+![Cashalot dashboard screenshot](screenshot.png)
+
+Personal dashboard for tracking income, expenses, and savings — built to replace a spreadsheet. In-place editing (add/remove/edit rows), live calculations (money left over, smoothing of annual/quarterly charges), and two views (Cards / Compact) over the same data.
 
 ## Stack
 
-Aucune dépendance de build : Vue 3 (Composition API) chargé en module ES, vendorisé localement dans `vendor/`. Le site est 100 % statique — `index.html` + `src/`.
+No build dependency: Vue 3 (Composition API) loaded as an ES module, vendored locally in `vendor/`. The site is 100% static — `index.html` + `src/`.
 
-## Démarrer en local
+## Run locally
 
 ```bash
-npm install   # outils de dev (lint, format) uniquement — aucune dépendance runtime
-npm run dev   # sert le site sur http://localhost:8080
+npm install   # dev tools (lint, format) only — no runtime dependency
+npm run dev   # serves the site at http://localhost:8080
 ```
 
-`app.js` étant un module ES, ouvrir `index.html` directement en `file://` ne fonctionne pas : il faut un serveur (`npm run dev`, ou tout autre serveur statique).
+Since `app.js` is an ES module, opening `index.html` directly via `file://` won't work: you need a server (`npm run dev`, or any other static server).
 
 ## Scripts
 
-| Commande               | Effet                              |
-| ---------------------- | ---------------------------------- |
-| `npm run dev`          | Sert le site en local              |
-| `npm run lint`         | ESLint sur `src/` et `scripts/`    |
-| `npm run format`       | Formate avec Prettier              |
-| `npm run format:check` | Vérifie le formatage sans modifier |
+| Command                | Effect                              |
+| ---------------------- | ----------------------------------- |
+| `npm run dev`          | Serves the site locally             |
+| `npm run lint`         | ESLint on `src/` and `scripts/`     |
+| `npm run format`       | Formats with Prettier               |
+| `npm run format:check` | Checks formatting without modifying |
 
 ## Structure
 
 ```
-index.html          Structure + template Vue (vues Cartes et Compact)
+index.html          Structure + Vue template (Cards and Compact views)
 src/
-  app.js            État réactif, calculs, persistance, animations
-  style.css         Design tokens et styles
+  app.js            Reactive state, calculations, persistence, animations
+  style.css         Design tokens and styles
 vendor/
-  vue.esm-browser.prod.js   Vue 3, vendorisé (pas de dépendance réseau au runtime)
+  vue.esm-browser.prod.js   Vue 3, vendored (no network dependency at runtime)
 scripts/
-  dev-server.mjs    Petit serveur statique Node (zéro dépendance)
-.github/workflows/  CI (lint/format) + déploiement GitHub Pages
+  dev-server.mjs    Small zero-dependency Node static server
+.github/workflows/  CI (lint/format) + GitHub Pages deployment
 ```
 
-## Données & vie privée
+## Data & privacy
 
-Toutes les données (revenus, dépenses, crédits, épargne...) vivent **uniquement dans le `localStorage` du navigateur** — rien n'est envoyé à un serveur, rien n'est commité dans le code. Les données d'exemple embarquées dans `src/app.js` (`seedData`) sont fictives.
+All data (income, expenses, loans, savings...) lives **only in the browser's `localStorage`** — nothing is sent to a server, nothing is committed to the code. The example data seeded in `src/app.js` (`seedData`) is fictional.
 
-Le `localStorage` est vidé si tu effaces les données de navigation. Utilise les boutons **Exporter** / **Importer** en haut du dashboard pour sauvegarder/restaurer tes données en JSON.
+`localStorage` is cleared if you clear your browsing data. Use the **Export** / **Import** buttons at the top of the dashboard to back up/restore your data as JSON.
