@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <radialGradient id="coinBody" cx="35%" cy="28%" r="80%">
+      <stop offset="0%" stop-color="#fff6d8" />
+      <stop offset="42%" stop-color="#ffd54f" />
+      <stop offset="78%" stop-color="#e8a716" />
+      <stop offset="100%" stop-color="#b8790f" />
+    </radialGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#c98a12" />
+      <stop offset="100%" stop-color="#7a4e08" />
+    </linearGradient>
+    <filter id="dropShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.6" flood-color="#3f2a05" flood-opacity="0.45" />
+    </filter>
+  </defs>
+
+  <circle cx="32" cy="34" r="28" fill="url(#rim)" />
+  <circle cx="32" cy="31" r="27" fill="url(#coinBody)" filter="url(#dropShadow)" />
+  <ellipse cx="23" cy="16" rx="13" ry="6.5" fill="#ffffff" opacity="0.4" />
+
+  <text
+    x="33"
+    y="42"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="34"
+    font-weight="700"
+    text-anchor="middle"
+    fill="#5c3d06"
+    opacity="0.55"
+  >$</text>
+  <text
+    x="32"
+    y="40"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="34"
+    font-weight="700"
+    text-anchor="middle"
+    fill="#4a2f05"
+  >$</text>
+</svg>
