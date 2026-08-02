@@ -26,7 +26,7 @@ jobs:
       - name: Assemble static site
         run: |
           mkdir _site
-          cp index.html _site/
+          cp index.html favicon.svg _site/
           cp -r src _site/
           cp -r vendor _site/
       - uses: actions/upload-pages-artifact@v3
