@@ -63,11 +63,7 @@ docker-compose.prod.yml  Production stack (app + Postgres, behind Traefik)
 
 All data (income, expenses, loans, savings...) lives in a PostgreSQL database on the server — every edit is saved automatically a few hundred milliseconds after you make it. Nothing is committed to the code; the example data seeded on first run (`seedData` in `src/logic.js`) is fictional.
 
-The **Export** / **Import** buttons at the top of the dashboard still work, as a manual JSON backup/restore tool.
-
-### Migrating from the old GitHub Pages version
-
-The previous version of this app stored data only in the browser's `localStorage`. To move that data into the new server-backed app: open the old site, click **Export** to download the JSON file, then open the new app, log in, and click **Import** to load it — this will overwrite whatever is currently in the database with the imported file.
+There is no export/import feature — auto-save made it unnecessary. Back up the data with a regular Postgres dump (`pg_dump`) against the `postgres` container if needed.
 
 ## Deployment
 
@@ -84,7 +80,6 @@ Required GitHub Actions secrets for the deploy workflow: `SSH_HOST`, `SSH_PORT`,
 - [x] Cards and Compact views over the same budget data
 - [x] Real backend + PostgreSQL persistence with automatic save
 - [x] Password-protected access
-- [x] Export / import as a manual JSON backup
 - [x] English-only codebase and docs
 - [x] Lint + format checks in CI
 - [x] Unit and integration tests (business logic + API)
