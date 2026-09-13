@@ -85,6 +85,10 @@ button {
   margin-top: 2px;
 }
 
+.subtitle-error {
+  color: var(--danger-red);
+}
+
 .header-actions {
   display: flex;
   align-items: center;
@@ -144,6 +148,77 @@ button {
   cursor: pointer;
   border-radius: 999px;
   transition: color 0.3s;
+}
+
+/* ---------- Login screen ---------- */
+.login-screen {
+  min-height: calc(100vh - 126px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 320px;
+  background: var(--card-bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: center;
+}
+
+.login-title {
+  font: 700 22px/1.2 'IBM Plex Sans';
+  letter-spacing: -0.01em;
+}
+
+.login-sub {
+  font: 400 13px/1.5 'IBM Plex Sans';
+  color: var(--text-secondary);
+  margin-bottom: 18px;
+}
+
+.login-input {
+  background: var(--raised-bg);
+  border: 1px solid var(--border-subtle-2);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font: 500 14px 'IBM Plex Sans';
+  padding: 10px 12px;
+  outline: none;
+  margin-bottom: 10px;
+}
+.login-input:focus-visible {
+  border-color: var(--accent-blue);
+}
+
+.login-btn {
+  background: var(--accent-blue);
+  border: none;
+  border-radius: 8px;
+  color: #0d1117;
+  font: 600 13px 'IBM Plex Sans';
+  padding: 10px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.login-btn:hover {
+  opacity: 0.9;
+}
+
+.login-error {
+  color: var(--danger-red);
+  font: 500 12px 'IBM Plex Sans';
+  margin-top: 12px;
+}
+
+.login-loading {
+  color: var(--text-secondary);
+  font: 400 13px 'IBM Plex Sans';
 }
 
 /* ---------- Hero ---------- */
@@ -250,10 +325,10 @@ button {
 }
 
 .donut-body {
-  display: flex;
+  display: grid;
+  grid-template-columns: 150px 1fr;
   align-items: center;
   gap: 28px;
-  flex-wrap: wrap;
 }
 
 .donut-ring-wrap {
@@ -293,8 +368,6 @@ button {
   display: flex;
   flex-direction: column;
   gap: 9px;
-  flex: 1;
-  min-width: 170px;
 }
 
 .legend-row {
@@ -730,4 +803,51 @@ select.select-month {
 .enter.mounted {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* ---------- Focus states ---------- */
+input:focus-visible,
+select:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ---------- Small screens ---------- */
+@media (max-width: 480px) {
+  .app {
+    padding: 24px 14px 60px;
+  }
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .header-actions {
+    justify-content: space-between;
+  }
+  .hero-card {
+    padding: 28px 22px;
+  }
+  .stats-row,
+  .donuts-row,
+  .categories-grid {
+    grid-template-columns: 1fr;
+  }
+  .donut-body {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+  .donut-legend {
+    width: 100%;
+    text-align: left;
+  }
 }

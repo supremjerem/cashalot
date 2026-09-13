@@ -10,22 +10,22 @@ import {
   loanProgressLabel
 } from './logic.js';
 
-const STORAGE_KEY = 'fin-dash-v1';
-
-function loadState() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return normalizeState(JSON.parse(raw));
-  } catch {
-    /* ignore corrupt storage */
-  }
-  return seedData();
+async function fetchJson(url, options) {
+  const res = await fetch(url, {
+    ...options,
+    headers: { 'Content-Type': 'application/json', ...options?.headers }
+  });
+  if (!res.ok) throw new Error(`${url} responded with ${res.status}`);
+  return res.json();
 }
 
 const App = {
   setup() {
-    const state = reactive(loadState());
+    const state = reactive(seedData());
     const mounted = ref(false);
+    const loaded = ref(false);
+    const auth = reactive({ status: 'loading', password: '', error: '' });
+    const saveState = ref('idle'); // idle | saving | saved | error
     const anim = reactive({ totalIn: 0, totalOut: 0, remainingAfterSavings: 0, totalSavings: 0 });
 
     const totals = computed(() => computeTotals(state));
@@ -121,14 +121,17 @@ const App = {
           savings: state.savings
         }),
       (val) => {
+        if (!loaded.value) return;
         clearTimeout(saveTimer);
-        saveTimer = setTimeout(() => {
+        saveTimer = setTimeout(async () => {
+          saveState.value = 'saving';
           try {
-            localStorage.setItem(STORAGE_KEY, val);
+            await fetchJson('/api/state', { method: 'PUT', body: val });
+            saveState.value = 'saved';
           } catch {
-            /* storage unavailable */
+            saveState.value = 'error';
           }
-        }, 250);
+        }, 400);
       }
     );
 
@@ -184,11 +187,6 @@ const App = {
     }
 
     function resetSeed() {
-      try {
-        localStorage.removeItem(STORAGE_KEY);
-      } catch {
-        /* storage unavailable */
-      }
       applyState(seedData());
     }
 
@@ -239,11 +237,50 @@ const App = {
       }
     }
 
+    async function loadRemoteState() {
+      try {
+        applyState(await fetchJson('/api/state'));
+      } finally {
+        loaded.value = true;
+      }
+    }
+
+    async function checkSession() {
+      try {
+        const data = await fetchJson('/api/session');
+        if (data.authenticated) {
+          await loadRemoteState();
+          auth.status = 'authenticated';
+        } else {
+          auth.status = 'unauthenticated';
+        }
+      } catch {
+        auth.status = 'unauthenticated';
+        auth.error = 'Could not reach the server. Please retry.';
+      }
+    }
+
+    async function login() {
+      auth.error = '';
+      try {
+        await fetchJson('/api/login', { method: 'POST', body: JSON.stringify({ password: auth.password }) });
+        auth.password = '';
+        await loadRemoteState();
+        auth.status = 'authenticated';
+      } catch {
+        auth.error = 'Incorrect password.';
+      }
+    }
+
+    async function logout() {
+      await fetchJson('/api/logout', { method: 'POST' }).catch(() => {});
+      loaded.value = false;
+      auth.status = 'unauthenticated';
+    }
+
     onMounted(() => {
       startAnimLoop();
-      setTimeout(() => {
-        mounted.value = true;
-      }, 30);
+      checkSession();
     });
 
     function enterStyle(delay) {
@@ -278,6 +315,10 @@ const App = {
       deleteRow,
       resetSeed,
       statusMessage,
+      auth,
+      saveState,
+      login,
+      logout,
       exportData,
       importData,
       triggerImport,

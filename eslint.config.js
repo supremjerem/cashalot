@@ -18,8 +18,20 @@ export default [
         Intl: 'readonly',
         URL: 'readonly',
         Blob: 'readonly',
+        fetch: 'readonly',
         console: 'readonly',
         process: 'readonly'
+      }
+    }
+  },
+  {
+    files: ['server/**/*.js'],
+    languageOptions: {
+      ecmaVersion: 2023,
+      sourceType: 'module',
+      globals: {
+        process: 'readonly',
+        console: 'readonly'
       }
     }
   },

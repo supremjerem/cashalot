@@ -2,64 +2,94 @@
 
 ![Cashalot dashboard screenshot](screenshot.png)
 
-Personal dashboard for tracking income, expenses, and savings — built to replace a spreadsheet. In-place editing (add/remove/edit rows), live calculations (money left over, smoothing of annual/quarterly charges), and two views (Cards / Compact) over the same data.
+Personal dashboard for tracking income, expenses, and savings — built to replace a spreadsheet. In-place editing (add/remove/edit rows), live calculations (money left over, smoothing of annual/quarterly charges), and two views (Cards / Compact) over the same data. Every change is saved automatically to a real database — no more manual export/import to move data around.
 
 ## Stack
 
-No build dependency: Vue 3 (Composition API) loaded as an ES module, vendored locally in `vendor/`. The site is 100% static — `index.html` + `src/`.
+- **Frontend**: Vue 3 (Composition API) loaded as an ES module, vendored locally in `vendor/` — no build step.
+- **Backend**: a small Express server (`server/`) that serves the static frontend and a JSON API, backed by PostgreSQL (plain SQL via `pg`, no ORM).
+- **Auth**: a single shared password (bcrypt-hashed), protecting the whole app behind a login screen.
 
 ## Run locally
 
-```bash
-npm install   # dev tools (lint, format) only — no runtime dependency
-npm run dev   # serves the site at http://localhost:8080
-```
-
-Since `app.js` is an ES module, opening `index.html` directly via `file://` won't work: you need a server (`npm run dev`, or any other static server).
+1. Start Postgres: `docker compose up -d` (a `cashalot`/`cashalot` database on `localhost:5432`).
+2. Copy `.env.example` to `.env` and set `APP_PASSWORD_HASH` — generate one with:
+   ```bash
+   npm install
+   node scripts/hash-password.mjs "your password"
+   ```
+3. `npm run dev` — serves the app (frontend + API) at http://localhost:3000.
 
 ## Scripts
 
-| Command                | Effect                              |
-| ---------------------- | ----------------------------------- |
-| `npm run dev`          | Serves the site locally             |
-| `npm run lint`         | ESLint on `src/` and `scripts/`     |
-| `npm run format`       | Formats with Prettier               |
-| `npm run format:check` | Checks formatting without modifying |
-| `npm test`             | Runs the Vitest test suite once     |
-| `npm run test:watch`   | Runs Vitest in watch mode           |
+| Command                | Effect                                                   |
+| ---------------------- | -------------------------------------------------------- |
+| `npm run dev`          | Runs the server (frontend + API) with reload             |
+| `npm start`            | Runs the server once, no watch (production)              |
+| `npm run lint`         | ESLint on `src/`, `server/` and `scripts/`               |
+| `npm run format`       | Formats with Prettier                                    |
+| `npm run format:check` | Checks formatting without modifying                      |
+| `npm test`             | Runs the Vitest test suite once (needs Postgres running) |
+| `npm run test:watch`   | Runs Vitest in watch mode                                |
 
 ## Structure
 
 ```
 index.html          Structure + Vue template (Cards and Compact views)
 src/
-  app.js            Vue wiring: reactive state, persistence, animations
+  app.js            Vue wiring: reactive state, API calls, auth gate, animations
   logic.js          Pure business logic (totals, loan progress, state normalization)
   logic.test.js      Vitest unit tests for logic.js
   style.css         Design tokens and styles
+server/
+  index.js          Entry point: runs migrations, starts the HTTP server
+  app.js            Express app: auth, API routes, static file serving
+  db.js             Postgres connection, migration, read/write of the budget state
+  auth.js           Password check + session middleware
+  app.test.js        Vitest + Supertest integration tests for the API
 vendor/
   vue.esm-browser.prod.js   Vue 3, vendored (no network dependency at runtime)
 scripts/
-  dev-server.mjs    Small zero-dependency Node static server
+  hash-password.mjs Generates a bcrypt hash for APP_PASSWORD_HASH
+Dockerfile           Production image (Node + static assets + server)
+docker-compose.yml       Local dev stack (Postgres only)
+docker-compose.prod.yml  Production stack (app + Postgres, behind Traefik)
 .github/
-  workflows/        CI (lint/format/test), CodeQL, GitHub Pages deployment
-  dependabot.yml    Automated dependency update PRs (npm + GitHub Actions)
+  workflows/        CI (lint/format/test), CodeQL, Docker image publish, VPS deploy
+  dependabot.yml    Automated dependency update PRs (npm + Docker + GitHub Actions)
 ```
 
 ## Data & privacy
 
-All data (income, expenses, loans, savings...) lives **only in the browser's `localStorage`** — nothing is sent to a server, nothing is committed to the code. The example data seeded in `src/app.js` (`seedData`) is fictional.
+All data (income, expenses, loans, savings...) lives in a PostgreSQL database on the server — every edit is saved automatically a few hundred milliseconds after you make it. Nothing is committed to the code; the example data seeded on first run (`seedData` in `src/logic.js`) is fictional.
 
-`localStorage` is cleared if you clear your browsing data. Use the **Export** / **Import** buttons at the top of the dashboard to back up/restore your data as JSON.
+The **Export** / **Import** buttons at the top of the dashboard still work, as a manual JSON backup/restore tool.
+
+### Migrating from the old GitHub Pages version
+
+The previous version of this app stored data only in the browser's `localStorage`. To move that data into the new server-backed app: open the old site, click **Export** to download the JSON file, then open the new app, log in, and click **Import** to load it — this will overwrite whatever is currently in the database with the imported file.
+
+## Deployment
+
+Deployed via Docker Compose on a personal VPS, behind an existing Traefik reverse proxy, at `cashalot.supremjerem.com`.
+
+- `docker-publish.yml` builds and pushes the image to GHCR after CI passes on `main`.
+- `deploy.yml` then SSHes into the server and runs `docker compose -f docker-compose.prod.yml pull && up -d`.
+- On the server: copy `.env.prod.example` to `~/apps/live/cashalot/.env` and fill in real values (`POSTGRES_PASSWORD`, `SESSION_SECRET`, `APP_PASSWORD_HASH`).
+
+Required GitHub Actions secrets for the deploy workflow: `SSH_HOST`, `SSH_PORT`, `SSH_USER`, `SSH_PRIVATE_KEY`.
 
 ## Roadmap
 
 - [x] Cards and Compact views over the same budget data
-- [x] Export / import as JSON
+- [x] Real backend + PostgreSQL persistence with automatic save
+- [x] Password-protected access
+- [x] Export / import as a manual JSON backup
 - [x] English-only codebase and docs
 - [x] Lint + format checks in CI
-- [x] Unit tests for the business logic (totals, loan progress, state normalization)
+- [x] Unit and integration tests (business logic + API)
 - [x] CodeQL security scanning + Dependabot dependency updates
+- [x] Dockerized deployment behind Traefik
 - [ ] Component/UI-level tests (Vue Testing Library) for the Cards/Compact views
 - [ ] Recurring-charge reminders (e.g. upcoming payment in the next N days)
 - [ ] Multi-currency support
