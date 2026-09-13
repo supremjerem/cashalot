@@ -95,11 +95,6 @@ button {
   gap: 14px;
 }
 
-.status-message {
-  font: 500 12px 'IBM Plex Sans';
-  color: var(--success-green);
-}
-
 .btn-reset {
   background: none;
   border: 1px solid var(--border-subtle-2);
@@ -392,6 +387,12 @@ button {
   grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
   gap: 16px;
   align-items: start;
+}
+
+.categories-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .category-card {
