@@ -10,11 +10,12 @@ import {
   loanProgressLabel
 } from './logic.js';
 
+let csrfToken = '';
+
 async function fetchJson(url, options) {
-  const res = await fetch(url, {
-    ...options,
-    headers: { 'Content-Type': 'application/json', ...options?.headers }
-  });
+  const headers = { 'Content-Type': 'application/json', ...options?.headers };
+  if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
+  const res = await fetch(url, { ...options, headers });
   if (!res.ok) throw new Error(`${url} responded with ${res.status}`);
   return res.json();
 }
@@ -248,6 +249,7 @@ const App = {
     async function checkSession() {
       try {
         const data = await fetchJson('/api/session');
+        csrfToken = data.csrfToken || '';
         if (data.authenticated) {
           await loadRemoteState();
           auth.status = 'authenticated';
@@ -275,7 +277,7 @@ const App = {
     async function logout() {
       await fetchJson('/api/logout', { method: 'POST' }).catch(() => {});
       loaded.value = false;
-      auth.status = 'unauthenticated';
+      await checkSession();
     }
 
     onMounted(() => {
