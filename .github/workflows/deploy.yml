@@ -1,36 +1,25 @@
-name: Deploy to GitHub Pages
+name: Deploy to VPS
 
+# Runs after the Docker image has been published, so the server always pulls
+# an image that already exists in GHCR.
 on:
-  push:
-    branches: [main]
-  workflow_dispatch:
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
+  workflow_run:
+    workflows: [Publish Docker image]
+    types: [completed]
 
 jobs:
   deploy:
+    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/configure-pages@v5
-      - name: Assemble static site
-        run: |
-          mkdir _site
-          cp index.html favicon.svg _site/
-          cp -r src _site/
-          cp -r vendor _site/
-      - uses: actions/upload-pages-artifact@v3
+      - name: SSH and redeploy
+        uses: appleboy/ssh-action@v1.2.0
         with:
-          path: _site
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          host: ${{ secrets.SSH_HOST }}
+          port: ${{ secrets.SSH_PORT }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/apps/live/cashalot
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d

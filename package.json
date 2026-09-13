@@ -5,17 +5,26 @@
   "description": "Personal dashboard for tracking income, expenses, and savings.",
   "type": "module",
   "scripts": {
-    "dev": "node scripts/dev-server.mjs",
+    "dev": "node --watch --env-file=.env server/index.js",
+    "start": "node server/index.js",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest"
   },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-session": "^2.1.0",
+    "express": "^4.21.2",
+    "express-rate-limit": "^8.7.0",
+    "pg": "^8.13.1"
+  },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
     "eslint": "^9.19.0",
     "prettier": "^3.4.2",
+    "supertest": "^7.0.0",
     "vitest": "^3.0.0"
   }
 }

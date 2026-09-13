@@ -1,0 +1,64 @@
+# Production stack — deploy to the VPS, NOT used for local development
+# (local dev uses docker-compose.yml, which only runs Postgres).
+#
+# Server layout: lives in ~/apps/live/cashalot/ next to a .env file (never
+# committed) that supplies the variables referenced below. Traefik already
+# runs in ~/apps/tools/traefik/ and owns the external `web` network.
+#
+# Usage on the server:
+#   docker compose -f docker-compose.prod.yml pull
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# The image is built and pushed to GHCR by .github/workflows/docker-publish.yml
+# on every push to main. Set IMAGE_TAG in the server .env to pin a specific
+# build (defaults to latest).
+
+services:
+  app:
+    image: ghcr.io/supremjerem/cashalot:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    networks:
+      - web
+      - cashalot-internal
+    environment:
+      DATABASE_URL: postgresql://cashalot:${POSTGRES_PASSWORD}@postgres:5432/cashalot
+      SESSION_SECRET: ${SESSION_SECRET}
+      APP_PASSWORD_HASH: ${APP_PASSWORD_HASH}
+      PORT: 3000
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=web'
+      - 'traefik.http.routers.cashalot.rule=Host(`${DOMAIN}`)'
+      - 'traefik.http.routers.cashalot.entrypoints=websecure'
+      - 'traefik.http.routers.cashalot.tls.certresolver=letsencrypt'
+      - 'traefik.http.services.cashalot.loadbalancer.server.port=3000'
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    networks:
+      - cashalot-internal
+    environment:
+      POSTGRES_USER: cashalot
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: cashalot
+    volumes:
+      - cashalot_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U cashalot']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+networks:
+  web:
+    external: true
+  cashalot-internal:
+    driver: bridge
+
+volumes:
+  cashalot_db_data:

@@ -2,6 +2,11 @@ node_modules/
 .DS_Store
 *.log
 
+# Local/server secrets — never commit real values.
+.env
+.env.local
+.env.prod
+
 # Original design handoff files: contain real financial data
 # (amounts, loan names, income). Never commit.
 docs/design/

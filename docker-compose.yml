@@ -1,0 +1,19 @@
+# Local development stack — only runs Postgres.
+# The app itself runs on the host via `npm run dev`, pointed at this database
+# via DATABASE_URL (see .env.example — port 5435 to avoid clashing with other
+# local Postgres instances on the default 5432/5433/5434).
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: cashalot
+      POSTGRES_PASSWORD: cashalot
+      POSTGRES_DB: cashalot
+    ports:
+      - '5435:5432'
+    volumes:
+      - cashalot-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  cashalot-postgres-data:
