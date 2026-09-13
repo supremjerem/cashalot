@@ -191,53 +191,6 @@ const App = {
       applyState(seedData());
     }
 
-    const statusMessage = ref('');
-    let statusTimer = null;
-    function flashStatus(msg) {
-      statusMessage.value = msg;
-      clearTimeout(statusTimer);
-      statusTimer = setTimeout(() => {
-        statusMessage.value = '';
-      }, 4000);
-    }
-
-    function exportData() {
-      const payload = {
-        view: state.view,
-        income: state.income,
-        recurring: state.recurring,
-        loans: state.loans,
-        oneOff: state.oneOff,
-        quarterly: state.quarterly,
-        savings: state.savings
-      };
-      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `cashalot-export-${new Date().toISOString().slice(0, 10)}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-      flashStatus('Export downloaded.');
-    }
-
-    const fileInputRef = ref(null);
-    function triggerImport() {
-      fileInputRef.value?.click();
-    }
-    async function importData(event) {
-      const file = event.target.files?.[0];
-      event.target.value = '';
-      if (!file) return;
-      try {
-        const data = JSON.parse(await file.text());
-        applyState(data);
-        flashStatus('Import successful.');
-      } catch {
-        flashStatus('Invalid file, import cancelled.');
-      }
-    }
-
     async function loadRemoteState() {
       try {
         applyState(await fetchJson('/api/state'));
@@ -316,15 +269,10 @@ const App = {
       addSavings,
       deleteRow,
       resetSeed,
-      statusMessage,
       auth,
       saveState,
       login,
-      logout,
-      exportData,
-      importData,
-      triggerImport,
-      fileInputRef
+      logout
     };
   }
 };
