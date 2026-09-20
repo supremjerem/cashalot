@@ -23,8 +23,8 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "eslint": "^10.10.0",
-    "prettier": "^3.9.6",
+    "prettier": "^3.9.7",
     "supertest": "^7.0.0",
-    "vitest": "^5.0.0"
+    "vitest": "^5.0.1"
   }
 }
